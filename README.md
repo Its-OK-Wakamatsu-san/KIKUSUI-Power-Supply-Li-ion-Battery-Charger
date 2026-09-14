@@ -23,14 +23,14 @@ Kikusui Power Supply LION battery charge program is written in Python. <p>
      - “Power Supply Disable“ Button
      - “Back to Local Mode“ Button
   7. Input:
-     - “Time Interval_transient“ to control this module, default is 1 sec/step.
-     - “Time Interval_stable“  If control cmd state is stable(constant), control time interval is 10sec/step.
+     - “Time Interval_transient“ to control this module, default is 1 sec/step.(typical)
+     - “Time Interval_stable“  If control cmd state is stable(constant), control time interval is 10sec/step.(typical)
      - “Phase1 CC Charge (Voltage)“  Voltage changing from Phase0(Trickle charge) to Phase1(CC Charge).
      - “Phase2 CV Charge (Voltage)“  Voltage changing from Phase1(CC charge) to Phase2(CV Charge).
      - “Phase0 Tricle Charge rate(A)“  Current in Phase0(Trickle charge), default is 10mA.
      - “Phase1 CC Charge rate(A)“  Current in Phase1(CC charge).
-     - “Terminate Condition1　Maximum time(min)“ 　The CV charging will stop after a certain amount of time has elapsed since entering Phase 2.
-     - “Terminate Condition2　Current(A)“ 　The CV charging will stop when the current drops to 1/10th of its CC value.
+     - “Terminate Condition1　Maximum time(min)“ 　The CV charging will stop after a certain amount of time has elapsed since entering Phase 2. Typical is 60 min.
+     - “Terminate Condition2　Current(A)“ 　The CV charging will stop when the current drops to this value. Typical is 1/10th of its CC value.
 
 <img width="945" height="890" alt="image" src="https://github.com/user-attachments/assets/fb5c6706-877c-4b6d-865a-9f7caf2b0e5d" />
 <p> LION battery charge program <p>
