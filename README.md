@@ -44,6 +44,7 @@ This project is the main web-based CV control panel for the KIKUSUI PMX18-5A pow
 ## Battery charge Web UI
 
 The Tkinter/Matplotlib battery charger has a WebSocket-based Web UI version.
+<img width="1550" height="1142" alt="image" src="https://github.com/user-attachments/assets/e74a4a95-9f6f-4997-aca4-e14093017a2e" />
 
 1. Run `KIKUSUI_PMX18-5A_Battery_Charge_web.py` from this folder.
 2. Open `http://localhost:8003` in a browser.
