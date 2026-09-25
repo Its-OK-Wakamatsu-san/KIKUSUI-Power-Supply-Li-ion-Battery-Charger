@@ -33,7 +33,7 @@ This project is the main web-based CV control panel for the KIKUSUI PMX18-5A pow
 ## Development environment
 - OS: Windows 11
 - Python: 3.11+
-- Libraries: pyvisa, http, urllib
+- Libraries: pyvisa, http, urllib, websockets
 - VISA backend: NI-VISA or compatible driver
 
 ## Related resources
