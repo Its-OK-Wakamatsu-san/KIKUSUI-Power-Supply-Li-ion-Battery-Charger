@@ -18,7 +18,7 @@ There are the web-based CV control and  Battery charger versions,  and Tkinter/M
 ### web-based Battery charger
 1. Run:
    ```powershell
-   python "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
+   python "C:\Users\directory\KIKUSUI_PMX18-5A_Battery_Charge_web.py
    ```
 2. Open the browser at:
    ```text
