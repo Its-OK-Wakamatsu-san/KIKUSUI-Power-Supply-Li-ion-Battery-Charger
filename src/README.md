@@ -2,26 +2,25 @@
 
 There are the web-based CV control and  Battery charger versions,  and Tkinter/Matplotlib versions(old versions).
 
-## deifinition
+## Usage
+### web-based CV control
 
-1. web-based CV control.
-2. Run:
+1. Run:
    ```powershell
    python "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
    ```
-3. Open the browser at:
+2. Open the browser at:
    ```text
    http://localhost:8001
    ```
-   
-1.  web-based CV control.
-2. Run:
+### web-based Battery charger
+1. Run:
    ```powershell
    python "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
    ```
-3. Open the browser at:
+23. Open the browser at:
    ```text
-   http://localhost:8001
+   http://localhost:8003
    ```
    On the page, press the control buttons in this order:
    - Set the target voltage
