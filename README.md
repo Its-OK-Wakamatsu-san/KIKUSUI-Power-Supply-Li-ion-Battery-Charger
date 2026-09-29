@@ -1,4 +1,4 @@
-﻿# KIKUSUI PMX18-5A Web CV Control & Battery Charger
+﻿# KIKUSUI PMX18-5A Web-based CV Control & Battery Charger
 
 This project is the main web-based CV control panel and Battery Charger for the KIKUSUI PMX18-5A power supply.
 
