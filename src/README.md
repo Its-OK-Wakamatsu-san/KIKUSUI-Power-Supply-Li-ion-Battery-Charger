@@ -13,42 +13,21 @@ There are the web-based CV control and  Battery charger versions,  and Tkinter/M
    ```text
    http://localhost:8001
    ```
+3. Select the VISA resource, press `Remote`, press `Output ON`, apply the voltage settings, and press `Start`.
+   
 ### web-based Battery charger
 1. Run:
    ```powershell
    python "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
    ```
-23. Open the browser at:
+2. Open the browser at:
    ```text
    http://localhost:8003
    ```
-   On the page, press the control buttons in this order:
-   - Set the target voltage
-   - Remote ON
-   - Output ON
-   - Monitor the live graph and log
-5. To stop, press Output OFF or end the server with Ctrl+C.
+3. Select the VISA resource, press `Remote`, press `Output ON`, apply the charge settings, and press `Start`.
 
 ## Features
-- Web-based monitoring of voltage, current, target voltage, and elapsed time
-- Live plotted trend graph
-- Operation log panel
-- Serial command interface through the VISA module
 
-## Notes
-- This is the main operation method for the constant voltage power supply.
-- Make sure the KIKUSUI power supply is connected and recognized by the system before starting.
-
-## Development environment
-- OS: Windows 11
-- Python: 3.11+
-- Libraries: pyvisa, http, urllib, websocket
-- VISA backend: NI-VISA or compatible driver
-
-## Related resources
-- [Kikusui PMX-A Series](https://kikusui.co.jp/w2-2/dc-power-supply/pmx-a/pmx-a/)
-- [Kikusui Sample Code for Python](https://kikusui.co.jp/download/python/)
-- [NI-VISA](https://www.ni.com/ja-jp/support/downloads/drivers/download.ni-visa.html#346210)
 
 ## Battery charge Web UI
 
