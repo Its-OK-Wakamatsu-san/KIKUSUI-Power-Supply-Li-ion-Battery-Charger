@@ -30,9 +30,7 @@ There are the web-based CV control and  Battery charger versions,  and Tkinter/M
 
 
 ## Battery charge Web UI
-The Tkinter program `KIKUSUI_PMX18-5A_CNTL.py has a WebSocket-based Web UI version.
-
-
+The Tkinter program `KIKUSUI_PMX18-5A_Battery_Charge.py` has a WebSocket-based Web UI version.
 
 ## Constant-voltage Web UI
 The Tkinter program `KIKUSUI_PMX18-5A_CNTL.py` also has a WebSocket-based HTML version.
