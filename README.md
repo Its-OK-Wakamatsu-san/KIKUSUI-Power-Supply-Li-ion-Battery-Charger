@@ -2,7 +2,7 @@
 
 This project is the main web-based CV control panel and Battery Charger for the KIKUSUI PMX18-5A power supply.
 
-## Main startup flow
+## Main startup flow (CV Control)
 
 1. Open a terminal in the project folder.
 2. Run:
@@ -41,7 +41,7 @@ This project is the main web-based CV control panel and Battery Charger for the 
 - [Kikusui Sample Code for Python](https://kikusui.co.jp/download/python/)
 - [NI-VISA](https://www.ni.com/ja-jp/support/downloads/drivers/download.ni-visa.html#346210)
 
-## Battery charge Web UI
+## Battery charger Web UI
 
 The battery charger has a WebSocket-based Web UI version.
 <img width="1489" height="1084" alt="image" src="https://github.com/user-attachments/assets/43431c30-658e-4342-a54a-8f3ec83abd66" />
