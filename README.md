@@ -2,7 +2,7 @@
 
 This project is the main web-based CV control panel and Battery Charger for the KIKUSUI PMX18-5A power supply.
 
-## Main startup flow (CV Control)
+## Main startup flow (web-based CV Control)
 
 1. Open a terminal in the project folder.
 2. Run:
