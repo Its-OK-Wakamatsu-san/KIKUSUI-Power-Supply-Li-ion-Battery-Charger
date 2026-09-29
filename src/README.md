@@ -1,10 +1,10 @@
-﻿# KIKUSUI PMX18-5A Web CV Control
+﻿# KIKUSUI PMX18-5A CV Control　etc.
 
-This project is the main web-based CV control panel for the KIKUSUI PMX18-5A power supply.
+There are the web-based CV control and  Battery charger versions,  and Tkinter/Matplotlib versions(old versions).
 
-## Main startup flow
+## deifinition
 
-1. Open a terminal in the project folder.
+1. web-based CV control.
 2. Run:
    ```powershell
    python "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
@@ -13,7 +13,17 @@ This project is the main web-based CV control panel for the KIKUSUI PMX18-5A pow
    ```text
    http://localhost:8001
    ```
-4. On the page, press the control buttons in this order:
+   
+1.  web-based CV control.
+2. Run:
+   ```powershell
+   python "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
+   ```
+3. Open the browser at:
+   ```text
+   http://localhost:8001
+   ```
+   On the page, press the control buttons in this order:
    - Set the target voltage
    - Remote ON
    - Output ON
