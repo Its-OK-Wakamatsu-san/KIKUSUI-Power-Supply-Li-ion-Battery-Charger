@@ -7,9 +7,10 @@ This project is the main web-based CV control panel and Battery Charger for the 
 1. Open a terminal in the project folder.
 2. File set:
    ```
-   batch  "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.bat"
-   python "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
-   html   "C:\Users\directory\templates\KIKUSUI_PMX18-5A_CNTL_index.html"
+   batch    "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.bat"
+   python   "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
+   html     "C:\Users\directory\templates\KIKUSUI_PMX18-5A_CNTL_index.html"
+   favicon  "C:\Users\directory\CV2.png"
    ```
 3. Run:
    ```powershell
@@ -55,9 +56,10 @@ The battery charger has a WebSocket-based Web UI version.
 
 1.File set:
    ```
-   batch  "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.bat"
-   python "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
-   html   "C:\Users\directory\templates\KIKUSUI_PMX18-5A_CNTL_index.html"
+   batch    "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.bat"
+   python   "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
+   html     "C:\Users\directory\templates\KIKUSUI_PMX18-5A_CNTL_index.html"
+   favicon  "C:\Users\directory\BC2.png"
    ```
 2. Run `KIKUSUI_PMX18-5A_Battery_Charge_web.py` from this folder.
 3. Open `http://localhost:8003` in a browser.
