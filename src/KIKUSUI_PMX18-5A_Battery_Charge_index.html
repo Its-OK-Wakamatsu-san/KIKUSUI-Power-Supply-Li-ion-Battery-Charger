@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <title>KIKUSUI Li-ion Battery Charger</title>
+    <style>
+        /* 画面全体の配色と基本レイアウト */
+        :root { color-scheme: dark; --bg: #111827; --panel: #1f2937; --panel2: #273449; --line: #3b4a60; --text: #e5e7eb; --muted: #9ca3af; --green: #34d399; --amber: #fbbf24; --red: #fb7185; --blue: #60a5fa; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: radial-gradient(circle at 90% 0, #243b53 0, var(--bg) 42%); color: var(--text); font: 14px/1.45 Segoe UI, sans-serif; }
+        main { width: min(1500px, 100%); margin: auto; padding: 18px; }
+        header { display: flex; justify-content: space-between; gap: 16px; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+        h1, h2, h3 { margin: 0; } h1 { font-size: 23px; letter-spacing: .3px; } h2 { font-size: 15px; margin-bottom: 12px; } h3 { font-size: 13px; color: var(--muted); }
+        .connection { color: var(--muted); text-align: right; } .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--red); margin-right: 7px; } .dot.on { background: var(--green); }
+        .layout { display: grid; grid-template-columns: 350px 1fr; gap: 16px; margin-top: 16px; } .stack { display: grid; gap: 16px; align-content: start; }
+        .panel { background: rgba(31, 41, 55, .94); border: 1px solid var(--line); padding: 15px; border-radius: 8px; }
+        .fields { display: grid; grid-template-columns: 1fr 110px; gap: 8px 10px; align-items: center; } label { color: var(--muted); } input, select { width: 100%; background: #111827; color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 7px 8px; }
+        .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; } button { border: 0; border-radius: 4px; padding: 9px 10px; color: #07111e; background: #cbd5e1; cursor: pointer; font-weight: 600; } button:hover { filter: brightness(1.12); } button:disabled { opacity: .45; cursor: default; } .green { background: var(--green); } .amber { background: var(--amber); } .red { background: var(--red); } .blue { background: var(--blue); }
+        .status { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; } .metric { background: var(--panel2); border-left: 3px solid var(--blue); padding: 11px; min-width: 0; } .metric:nth-child(2) { border-color: var(--green); } .metric:nth-child(3) { border-color: var(--amber); } .metric:nth-child(4) { border-color: var(--red); } .metric strong { display: block; font-size: 22px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        canvas { width: 100%; height: 420px; display: block; background: #111827; border: 1px solid var(--line); border-radius: 5px; } .legend { color: var(--muted); font-size: 12px; margin-top: 8px; } .legend span { margin-right: 16px; } .swatch { display: inline-block; width: 9px; height: 9px; margin-right: 4px; }
+        .log { min-height: 140px; max-height: 240px; overflow: auto; background: #111827; color: #cbd5e1; padding: 9px; white-space: pre-wrap; font-family: Consolas, monospace; font-size: 12px; }
+        #message { min-height: 21px; color: var(--amber); margin-top: 10px; } .phase { color: var(--green); } .wide { grid-column: 1 / -1; }
+        .tabs { display: flex; gap: 6px; margin-top: 16px; border-bottom: 1px solid var(--line); }
+        .tab-button { border-radius: 5px 5px 0 0; background: #374151; color: var(--muted); }
+        .tab-button.active { background: var(--blue); color: #07111e; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .status { grid-template-columns: repeat(2, 1fr); } canvas { height: 300px; } header { align-items: flex-start; flex-direction: column; } .connection { text-align: left; } }
+    </style>
+</head>
+<body>
+<main>
+    <!-- ヘッダー: VISA接続状態と充電状態を表示 -->
+    <header><div><h1>KIKUSUI PMX18-5A</h1><div style="color:var(--muted)">Li-ion Battery Charge</div></div><div class="connection"><span id="dot" class="dot"></span><span id="connection">Disconnected</span><br><span id="operation">Standby</span></div></header>
+    <!-- 充電操作と保護設定を切り替えるタブ -->
+    <div class="tabs" role="tablist">
+        <button class="tab-button active" data-tab="charge-tab" role="tab">Charge Control</button>
+        <button class="tab-button" data-tab="protection-tab" role="tab">Protection Settings</button>
+    </div>
+    <div id="charge-tab" class="tab-panel active">
+    <div class="layout">
+        <aside class="stack">
+            <!-- 機器接続と電源出力の操作 -->
+            <section class="panel"><h2>Device Connection</h2><select id="resource"></select><div class="buttons"><button data-action="connect" class="blue">Connect</button><button data-action="remote_on" class="green">Remote</button><button data-action="local">Local</button><button data-action="ready" class="green">Output ON</button><button data-action="disable" class="red">Output OFF</button></div></section>
+            <!-- 充電制御のしきい値と制御周期 -->
+            <section class="panel"><h2>Charge Settings</h2><div class="fields">
+                <label for="intervalSeconds">Control Interval (s)</label><input id="intervalSeconds" type="number" min="0.1" step="0.1" value="1">
+                <label for="plotIntervalSeconds">Plot / CSV Interval (s)</label><input id="plotIntervalSeconds" type="number" min="0.1" step="0.1" value="10">
+                <label for="phase1Voltage">Phase 1 Voltage (V)</label><input id="phase1Voltage" type="number" step="0.01" value="2.8">
+                <label for="phase2Voltage">Phase 2 Voltage (V)</label><input id="phase2Voltage" type="number" step="0.01" value="4.0">
+                <label for="trickleCurrent">Phase 0 Trickle Current (A)</label><input id="trickleCurrent" type="number" step="0.001" value="0.01">
+                <label for="ccCurrent">Phase 1/2 Charge Current (A)</label><input id="ccCurrent" type="number" step="0.001" value="0.5">
+                <label for="phase2MaxMinutes">Phase 2 Time Limit (min)</label><input id="phase2MaxMinutes" type="number" min="0" step="1" value="60">
+                <label for="phase2CutoffCurrent">Cutoff Current (A)</label><input id="phase2CutoffCurrent" type="number" min="0" step="0.001" value="0.05">
+            </div><div class="buttons"><button data-action="set_config" class="blue wide">Apply Settings</button></div></section>
+            <!-- Start/Stop、Pause/Resume、履歴リセット、CSV出力 -->
+            <section class="panel"><h2>Charge Control</h2><div class="buttons"><button data-action="start" class="green">Start</button><button data-action="pause_resume" class="amber">Pause / Resume</button><button data-action="stop" class="red">Stop</button><button data-action="reset" class="amber">Reset</button><button data-action="measure">Measure Now</button><button data-action="download_csv" class="blue wide">Download CSV</button></div><div id="message"></div></section>
+        </aside>
+        <section class="stack">
+            <!-- 現在値のサマリー -->
+            <section class="status"><div class="metric"><span>Elapsed Time (s)</span><strong id="elapsed">0.0</strong></div><div class="metric"><span>Voltage (V)</span><strong id="voltage">0.000</strong></div><div class="metric"><span>Current (A)</span><strong id="current">0.000</strong></div><div class="metric"><span>Phase</span><strong id="phase" class="phase">0</strong></div></section>
+            <!-- WebSocketで受信した履歴をCanvasへ描画 -->
+            <section class="panel"><h2>Charge Profile</h2><canvas id="chart" width="1100" height="420"></canvas><div class="legend"><span><i class="swatch" style="background:#60a5fa"></i>Voltage</span><span><i class="swatch" style="background:#34d399"></i>Current</span><span><i class="swatch" style="background:#fbbf24"></i>Current Command</span></div></section>
+            <!-- サーバーから受信した操作ログ -->
+            <section class="panel"><h2>Operation Log</h2><div id="log" class="log"></div></section>
+        </section>
+    </div>
+    </div>
+    <div id="protection-tab" class="tab-panel">
+        <section class="panel" style="margin-top:16px;">
+            <h2>Power Supply Protection Limits</h2>
+            <p style="color:var(--muted)">Set the voltage and current protection limits on the KIKUSUI power supply.</p>
+            <div class="fields">
+                <label for="protectionVoltage">Voltage Protection Limit (V)</label>
+                <input id="protectionVoltage" type="number" min="0.001" step="0.1" value="18.0">
+                <label for="protectionCurrent">Current Protection Limit (A)</label>
+                <input id="protectionCurrent" type="number" min="0.001" step="0.1" value="5.0">
+            </div>
+            <div class="buttons">
+                <button data-action="set_voltage_protection" class="blue">Set Voltage Limit</button>
+                <button data-action="set_current_protection" class="blue">Set Current Limit</button>
+            </div>
+            <div id="protection-message"></div>
+        </section>
+    </div>
+</main>
+<script>
+// DOM要素、設定項目、リアルタイム状態を保持する。
+const $ = id => document.getElementById(id);
+const fields = ['intervalSeconds','plotIntervalSeconds','phase1Voltage','phase2Voltage','trickleCurrent','ccCurrent','phase2MaxMinutes','phase2CutoffCurrent'];
+let latest = {history: [], config: {}};
+let socket = null;
+let fallbackTimer = null;
+
+function number(value, digits = 2) { return Number(value || 0).toFixed(digits); }
+function setMessage(text, error = false) { $('message').textContent = text || ''; $('message').style.color = error ? 'var(--red)' : 'var(--amber)'; }
+function actionPayload(action) { const data = {action}; fields.forEach(id => data[id] = Number($(id).value)); return data; }
+
+// 充電履歴をCanvasへ描画する。描画ライブラリは使用せず軽量に更新する。
+function drawChart(history) {
+    const canvas = $('chart'), ctx = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#111827'; ctx.fillRect(0, 0, w, h);
+    if (!history.length) return;
+    const left = 55, right = 58, top = 18, bottom = 35, cw = w - left - right, ch = h - top - bottom;
+    const times = history.map(p => Number(p.time) || 0);
+    const voltageValues = history.map(p => Number(p.voltage) || 0);
+    const currentValues = history.flatMap(p => [Number(p.current) || 0, Number(p.currentCommand) || 0]);
+    const maxT = Math.max(...times, 10);
+    const maxVoltage = Math.max(...voltageValues, 1);
+    const maxCurrent = Math.max(...currentValues, 0.1);
+    const x = t => left + t / maxT * cw;
+    const yVoltage = value => top + ch - value / maxVoltage * ch;
+    const yCurrent = value => top + ch - value / maxCurrent * ch;
+    ctx.strokeStyle = 'rgba(203,213,225,.14)'; ctx.lineWidth = 1; ctx.fillStyle = '#9ca3af'; ctx.font = '12px Segoe UI';
+    // 第1軸: 電圧(V)の目盛りとグリッド。
+    for (let i = 0; i <= 5; i++) {
+        const yy = top + ch * i / 5;
+        ctx.beginPath(); ctx.moveTo(left, yy); ctx.lineTo(w - right, yy); ctx.stroke();
+        ctx.fillText((maxVoltage * (5 - i) / 5).toFixed(2), 5, yy + 4);
+    }
+    // 第2軸: 電流(A)の目盛り。電圧軸とは独立したスケールで表示する。
+    for (let i = 0; i <= 5; i++) {
+        const yy = top + ch * i / 5;
+        ctx.fillText((maxCurrent * (5 - i) / 5).toFixed(2), w - right + 8, yy + 4);
+    }
+    const plot = (key, color, y) => {
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+        history.forEach((point, index) => {
+            const px = x(Number(point.time) || 0), py = y(Number(point[key]) || 0);
+            if (!index) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+    };
+    plot('voltage', '#60a5fa', yVoltage);
+    plot('current', '#34d399', yCurrent);
+    plot('currentCommand', '#fbbf24', yCurrent);
+    ctx.fillStyle = '#60a5fa'; ctx.fillText('Voltage (V)', left, 12);
+    ctx.fillStyle = '#34d399'; ctx.fillText('Current (A)', w - right - 64, 12);
+    ctx.fillStyle = '#9ca3af'; ctx.fillText('0s', left, h - 10); ctx.fillText(`${Math.round(maxT)}s`, w - right - 35, h - 10); ctx.fillText('time', left + cw / 2, h - 10);
+}
+
+// WebSocketまたはHTTP APIから受信した状態を画面へ反映する。
+function apply(data) {
+    latest = data || latest;
+    $('connection').textContent = data.connected ? `Connected: ${data.resource || ''}` : 'Disconnected';
+    $('dot').classList.toggle('on', Boolean(data.connected));
+    $('operation').textContent = data.paused ? 'Paused' : data.running ? 'Charging' : data.outputReady ? 'Output Ready' : 'Standby';
+    $('elapsed').textContent = number(data.elapsed, 1); $('voltage').textContent = number(data.voltage, 3); $('current').textContent = number(data.current, 3); $('phase').textContent = String(data.phase ?? 0);
+    const config = data.config || {}; fields.forEach(id => { if (document.activeElement !== $(id) && config[id] !== undefined) $(id).value = config[id]; });
+    if (document.activeElement !== $('protectionVoltage') && config.voltageProtection !== undefined) $('protectionVoltage').value = config.voltageProtection;
+    if (document.activeElement !== $('protectionCurrent') && config.currentProtection !== undefined) $('protectionCurrent').value = config.currentProtection;
+    const resource = $('resource'); const resources = data.resources || []; if (resource.options.length !== resources.length) { resource.innerHTML = ''; resources.forEach(item => { const option = document.createElement('option'); option.value = item; option.textContent = item; resource.appendChild(option); }); } if (data.resource) resource.value = data.resource;
+    $('log').textContent = (data.log || []).slice().reverse().join('\n'); $('log').scrollTop = 0; drawChart(data.history || []);
+}
+
+// ボタン操作をバックエンドの /api/command へ送信する。
+async function request(action) {
+    let payload;
+    if (action === 'connect') payload = {action, resource: $('resource').value};
+    else if (action === 'set_voltage_protection') payload = {action, protectionVoltage: Number($('protectionVoltage').value)};
+    else if (action === 'set_current_protection') payload = {action, protectionCurrent: Number($('protectionCurrent').value)};
+    else payload = actionPayload(action);
+    const response = await fetch('/api/command', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
+    const result = await response.json(); setMessage(result.message, !result.ok); $('protection-message').textContent = result.message || ''; await fetchStatus();
+}
+async function fetchStatus() { const response = await fetch('/api/status'); apply(await response.json()); }
+
+// WebSocketを通常経路とし、切断時はHTTPポーリングへ切り替える。
+function connectWebSocket() {
+    socket = new WebSocket(`ws://${location.hostname}:8004`);
+    socket.addEventListener('open', () => { if (fallbackTimer) { clearInterval(fallbackTimer); fallbackTimer = null; } });
+    socket.addEventListener('message', event => apply(JSON.parse(event.data)));
+    socket.addEventListener('close', () => { if (!fallbackTimer) fallbackTimer = setInterval(() => fetchStatus().catch(() => {}), 1000); setTimeout(connectWebSocket, 2000); });
+    socket.addEventListener('error', () => socket.close());
+}
+
+// ブラウザーで保持している履歴をCSVとして保存する。
+function downloadCSV() {
+    const rows = [['time(s)', 'currentCommand(A)', 'current(A)', 'voltage(V)', 'phase'], ...((latest.history || []).map(p => [p.time, p.currentCommand, p.current, p.voltage, p.phase]))];
+    const csv = rows.map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
+    const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); link.download = `KIKUSUI_CV_${latest.historyStartTime || 'history'}.csv`; link.click(); URL.revokeObjectURL(link.href);
+}
+
+// RESETはCNTL版と同様に確認してから実行する。
+document.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => {
+    const action = button.dataset.action;
+    if (action === 'reset' && !window.confirm('Reset elapsed time and history?')) return;
+    if (action === 'download_csv') downloadCSV();
+    else request(action).catch(error => setMessage(error.message, true));
+}));
+
+// タブの表示を切り替える。
+document.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => {
+    document.querySelectorAll('[data-tab]').forEach(item => item.classList.toggle('active', item === button));
+    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.toggle('active', panel.id === button.dataset.tab));
+}));
+fetchStatus().catch(error => setMessage(error.message, true)); connectWebSocket();
+</script>
+</body>
+</html>

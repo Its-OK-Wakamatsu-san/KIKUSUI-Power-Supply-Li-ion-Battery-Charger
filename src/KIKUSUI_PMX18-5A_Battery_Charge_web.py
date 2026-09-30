@@ -26,6 +26,7 @@ DEFAULT_PHASE2_CUTOFF_CURRENT = 0.05
 DEFAULT_MAX_HISTORY_POINTS = 36000
 SERVER_START_TIME = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
 INDEX_HTML_PATH = os.path.join(SCRIPT_DIR, 'templates', 'KIKUSUI_PMX18-5A_Battery_Charge_index.html')
+FAVICON_PATH = os.path.join(SCRIPT_DIR, 'BC2.png')
 
 with open(INDEX_HTML_PATH, 'r', encoding='utf-8') as html_file:
     INDEX_HTML = html_file.read().replace('__STARTUP_TIME__', SERVER_START_TIME)
@@ -449,6 +450,16 @@ class DashboardHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path == '/favicon.png':
+            with open(FAVICON_PATH, 'rb') as icon_file:
+                content = icon_file.read()
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/png')
+            self.send_header('Content-Length', str(len(content)))
+            self.send_header('Cache-Control', 'public, max-age=86400')
+            self.end_headers()
+            self.wfile.write(content)
+            return
         if parsed.path == '/':
             content = INDEX_HTML.encode('utf-8')
             self.send_response(200)
