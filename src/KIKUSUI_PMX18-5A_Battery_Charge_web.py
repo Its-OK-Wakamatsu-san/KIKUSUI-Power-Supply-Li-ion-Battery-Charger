@@ -60,6 +60,7 @@ class BatteryChargeWebAdapter:
 
         self.phase = 0
         self.phase2_detection_count = 0
+        self.phase2_started_elapsed = None
         self.current_requested = 0.0
         self.current_command = 0.0
         self.voltage_command = 0.0
@@ -134,6 +135,8 @@ class BatteryChargeWebAdapter:
             self.current_requested = self.cc_current
             self.phase2_detection_count += 1
             if self.phase2_detection_count > 3:
+                if self.phase2_started_elapsed is None:
+                    self.phase2_started_elapsed = self.elapsed
                 self.phase = 2
 
         if self.current_requested > self.current_command:
@@ -166,15 +169,17 @@ class BatteryChargeWebAdapter:
 
     def _control_step(self):
         self._read_measurements()
-        self._set_phase()
         self.elapsed = self._current_elapsed()
+        self._set_phase()
         now = time.monotonic()
         if now >= self.next_history_at:
             self._append_history(self.elapsed)
             while self.next_history_at <= now:
                 self.next_history_at += self.plot_interval_seconds
         if self.phase == 2:
-            phase2_minutes = max(0.0, self.elapsed / 60.0)
+            phase2_minutes = max(
+                0.0, (self.elapsed - self.phase2_started_elapsed) / 60.0
+            )
             time_limit_reached = phase2_minutes >= self.phase2_max_minutes
             current_limit_reached = self.current < self.phase2_cutoff_current
             if time_limit_reached or current_limit_reached:
@@ -299,6 +304,7 @@ class BatteryChargeWebAdapter:
         self.paused = False
         self.phase = 0
         self.phase2_detection_count = 0
+        self.phase2_started_elapsed = None
         self.current_command = 0.0
         self.current_requested = 0.0
         self.elapsed_before_run = 0.0
@@ -345,6 +351,7 @@ class BatteryChargeWebAdapter:
         self.paused_seconds = 0.0
         self.phase = 0
         self.phase2_detection_count = 0
+        self.phase2_started_elapsed = None
         self.history_start_time = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
         self.history.clear()
         self.next_history_at = now + self.plot_interval_seconds
