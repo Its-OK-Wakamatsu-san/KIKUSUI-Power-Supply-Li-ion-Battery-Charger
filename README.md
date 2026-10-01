@@ -51,14 +51,15 @@ This project is the main web-based CV control panel and Battery Charger for the 
 ## Battery charger Web UI
 
 The battery charger has a WebSocket-based Web UI version.
-<img width="1489" height="1084" alt="image" src="https://github.com/user-attachments/assets/43431c30-658e-4342-a54a-8f3ec83abd66" />
+<img width="1499" height="1076" alt="BC_web" src="https://github.com/user-attachments/assets/5c46d5a0-5864-4f88-a196-1bfd7dde7470" />
+
 
 
 1.File set:
    ```
-   batch    "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.bat"
-   python   "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
-   html     "C:\Users\directory\templates\KIKUSUI_PMX18-5A_CNTL_index.html"
+   batch    "C:\Users\directory\KIKUSUI_PMX18-5A_Battery_Charge.bat"
+   python   "C:\Users\directory\KIKUSUI_PMX18-5A_Battery_Charge.py"
+   html     "C:\Users\directory\templates\KIKUSUI_PMX18-5A_Battery_Charge_index.html"
    favicon  "C:\Users\directory\BC2.png"
    ```
 2. Run `KIKUSUI_PMX18-5A_Battery_Charge_web.py` from this folder.
