@@ -14,7 +14,7 @@ This project is the main web-based CV control panel and Battery Charger for the 
    ```
 3. Run:
    ```powershell
-   python "C:\Users\directory\KIKUSUI_PMX18-5A_CNTL_web.py"
+  KIKUSUI_PMX18-5A_CNTL_web.bat
    ```
 4. Open the browser at:
    ```text
@@ -55,15 +55,16 @@ The battery charger has a WebSocket-based Web UI version.
 
 
 
-1.File set:
+1. Open a terminal in the project folder.
+2. File set:
    ```
    batch    "C:\Users\directory\KIKUSUI_PMX18-5A_Battery_Charge.bat"
    python   "C:\Users\directory\KIKUSUI_PMX18-5A_Battery_Charge.py"
    html     "C:\Users\directory\templates\KIKUSUI_PMX18-5A_Battery_Charge_index.html"
    favicon  "C:\Users\directory\BC2.png"
    ```
-2. Run `KIKUSUI_PMX18-5A_Battery_Charge_web.py` from this folder.
-3. Open `http://localhost:8003` in a browser.
-4. Connect the VISA resource, enable Remote and Output, then press Start.
+4. Run `KIKUSUI_PMX18-5A_Battery_Charge_web.bat` from this folder.
+5. Open `http://localhost:8003` in a browser.
+6. Connect the VISA resource, enable Remote and Output, then press Start.
 
 The browser receives measurements, charge phase, logs, and graph history over WebSocket once per second. Pause/Resume excludes the paused time from elapsed charge time. `Stop` and `Output OFF` send `VOLT 0.0` and `OUTP OFF` to the power supply.
