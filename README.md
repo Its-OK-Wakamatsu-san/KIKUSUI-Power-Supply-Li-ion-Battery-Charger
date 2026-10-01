@@ -14,7 +14,7 @@ This project is the main web-based CV control panel and Battery Charger for the 
    ```
 3. Run:
    ```powershell
-  KIKUSUI_PMX18-5A_CNTL_web.bat
+   KIKUSUI_PMX18-5A_CNTL_web.bat
    ```
 4. Open the browser at:
    ```text
