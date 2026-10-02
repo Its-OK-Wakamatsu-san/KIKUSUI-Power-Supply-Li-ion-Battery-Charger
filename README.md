@@ -51,7 +51,8 @@ This project is the main web-based CV control panel and Battery Charger for the 
 ## Battery charger Web UI
 
 The battery charger has a WebSocket-based Web UI version.
-<img width="1499" height="1076" alt="BC_web" src="https://github.com/user-attachments/assets/5c46d5a0-5864-4f88-a196-1bfd7dde7470" />
+<img width="1484" height="1081" alt="image" src="https://github.com/user-attachments/assets/cc502b4c-c32b-414d-8f77-054c0b243dc5" />
+
 
 
 
