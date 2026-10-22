@@ -1,5 +1,6 @@
 import asyncio
 import json
+import math
 import os
 import sys
 import threading
@@ -16,20 +17,81 @@ if SCRIPT_DIR not in sys.path:
 import KIKUSUI_PMX18_5A_module
 
 DEFAULT_INTERVAL_SECONDS = 1.0
-DEFAULT_PLOT_INTERVAL_SECONDS = 10.0
+DEFAULT_PLOT_INTERVAL_SECONDS = 1.0
 DEFAULT_PHASE1_VOLTAGE = 2.8
-DEFAULT_PHASE2_VOLTAGE = 4.0
+DEFAULT_PHASE2_VOLTAGE = 4.2
 DEFAULT_TRICKLE_CURRENT = 0.01
-DEFAULT_CC_CURRENT = 0.5
-DEFAULT_PHASE2_MAX_MINUTES = 60.0
-DEFAULT_PHASE2_CUTOFF_CURRENT = 0.05
+DEFAULT_CC_CURRENT = 1.0
+DEFAULT_PHASE2_MAX_MINUTES = 180.0
+DEFAULT_PHASE2_CUTOFF_CURRENT = 0.1
 DEFAULT_MAX_HISTORY_POINTS = 36000
+TERMINAL_ESTIMATE_MIN_SAMPLES = 20
+MAX_TERMINAL_ESTIMATE_SAMPLES = 120
 SERVER_START_TIME = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
 INDEX_HTML_PATH = os.path.join(SCRIPT_DIR, 'templates', 'KIKUSUI_PMX18-5A_Battery_Charge_index.html')
 FAVICON_PATH = os.path.join(SCRIPT_DIR, 'BC2.png')
 
 with open(INDEX_HTML_PATH, 'r', encoding='utf-8') as html_file:
     INDEX_HTML = html_file.read().replace('__STARTUP_TIME__', SERVER_START_TIME)
+
+
+def _estimate_exponential_cutoff_seconds(samples, cutoff_current, elapsed_seconds):
+    if len(samples) < TERMINAL_ESTIMATE_MIN_SAMPLES or cutoff_current <= 0:
+        return None
+
+    points = [(float(t), float(current)) for t, current in samples if current > 0]
+    if len(points) < TERMINAL_ESTIMATE_MIN_SAMPLES:
+        return None
+
+    times = [point[0] for point in points]
+    currents = [point[1] for point in points]
+    time_mean = sum(times) / len(times)
+    time_variance = sum((value - time_mean) ** 2 for value in times)
+    if time_variance <= 0:
+        return None
+
+    max_offset = min(currents) - max(min(currents) * 1e-9, 1e-12)
+    if max_offset <= 0:
+        return None
+
+    def fit(offset):
+        log_currents = [math.log(current - offset) for current in currents]
+        log_mean = sum(log_currents) / len(log_currents)
+        slope = sum(
+            (sample_time - time_mean) * (log_current - log_mean)
+            for sample_time, log_current in zip(times, log_currents)
+        ) / time_variance
+        if slope >= 0:
+            return None
+        intercept = log_mean - slope * time_mean
+        amplitude = math.exp(intercept)
+        decay = -slope
+        error = sum(
+            (amplitude * math.exp(-decay * sample_time) + offset - current) ** 2
+            for sample_time, current in points
+        )
+        return error, offset, amplitude, decay
+
+    low, high = 0.0, max_offset
+    best = None
+    for _ in range(4):
+        step = (high - low) / 100
+        for index in range(101):
+            candidate = fit(low + step * index)
+            if candidate is not None and (best is None or candidate[0] < best[0]):
+                best = candidate
+        if best is None:
+            return None
+        low = max(0.0, best[1] - step)
+        high = min(max_offset, best[1] + step)
+
+    _, offset, amplitude, decay = best
+    if offset >= cutoff_current:
+        return None
+    modeled_current = amplitude * math.exp(-decay * elapsed_seconds) + offset
+    if modeled_current <= cutoff_current:
+        return 0.0
+    return max(0.0, math.log((modeled_current - offset) / (cutoff_current - offset)) / decay)
 
 
 class BatteryChargeWebAdapter:
@@ -61,6 +123,8 @@ class BatteryChargeWebAdapter:
         self.phase = 0
         self.phase2_detection_count = 0
         self.phase2_started_elapsed = None
+        self.phase2_current_samples = []
+        self.terminal_time_to_go_seconds = None
         self.current_requested = 0.0
         self.current_command = 0.0
         self.voltage_command = 0.0
@@ -167,10 +231,39 @@ class BatteryChargeWebAdapter:
         if len(self.history) > DEFAULT_MAX_HISTORY_POINTS:
             del self.history[:-DEFAULT_MAX_HISTORY_POINTS]
 
+    def _update_terminal_estimate(self):
+        if not self.running or self.phase != 2 or self.phase2_started_elapsed is None:
+            self.terminal_time_to_go_seconds = None
+            return
+        if len(self.phase2_current_samples) < TERMINAL_ESTIMATE_MIN_SAMPLES:
+            self.terminal_time_to_go_seconds = None
+            return
+
+        phase2_elapsed = max(0.0, self.elapsed - self.phase2_started_elapsed)
+        current_time_to_go = _estimate_exponential_cutoff_seconds(
+            self.phase2_current_samples,
+            self.phase2_cutoff_current,
+            phase2_elapsed,
+        )
+        time_limit_to_go = max(0.0, self.phase2_max_minutes * 60.0 - phase2_elapsed)
+        if current_time_to_go is None:
+            self.terminal_time_to_go_seconds = time_limit_to_go
+        else:
+            self.terminal_time_to_go_seconds = min(current_time_to_go, time_limit_to_go)
+
     def _control_step(self):
         self._read_measurements()
         self.elapsed = self._current_elapsed()
         self._set_phase()
+        if self.phase == 2 and self.phase2_started_elapsed is not None:
+            phase2_elapsed = max(0.0, self.elapsed - self.phase2_started_elapsed)
+            last_sample_time = self.phase2_current_samples[-1][0] if self.phase2_current_samples else None
+            if last_sample_time is None or phase2_elapsed - last_sample_time >= self.plot_interval_seconds:
+                if self.current > 0:
+                    self.phase2_current_samples.append((phase2_elapsed, self.current))
+                    if len(self.phase2_current_samples) > MAX_TERMINAL_ESTIMATE_SAMPLES:
+                        self.phase2_current_samples = [self.phase2_current_samples[0]] + self.phase2_current_samples[2::2]
+        self._update_terminal_estimate()
         now = time.monotonic()
         if now >= self.next_history_at:
             self._append_history(self.elapsed)
@@ -305,6 +398,8 @@ class BatteryChargeWebAdapter:
         self.phase = 0
         self.phase2_detection_count = 0
         self.phase2_started_elapsed = None
+        self.phase2_current_samples.clear()
+        self.terminal_time_to_go_seconds = None
         self.current_command = 0.0
         self.current_requested = 0.0
         self.elapsed_before_run = 0.0
@@ -352,6 +447,8 @@ class BatteryChargeWebAdapter:
         self.phase = 0
         self.phase2_detection_count = 0
         self.phase2_started_elapsed = None
+        self.phase2_current_samples.clear()
+        self.terminal_time_to_go_seconds = None
         self.history_start_time = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
         self.history.clear()
         self.next_history_at = now + self.plot_interval_seconds
@@ -407,6 +504,7 @@ class BatteryChargeWebAdapter:
         with self.lock:
             if self.running:
                 self.elapsed = self._current_elapsed()
+            self._update_terminal_estimate()
             return {
                 'connected': self.connected,
                 'resource': self.resource,
@@ -422,6 +520,12 @@ class BatteryChargeWebAdapter:
                 'voltage': self.voltage,
                 'voltageCommand': self.voltage_command,
                 'elapsed': self.elapsed,
+                'terminalTimeToGoMinutes': (
+                    self.terminal_time_to_go_seconds / 60.0
+                    if self.terminal_time_to_go_seconds is not None else None
+                ),
+                'terminalEstimateSamples': len(self.phase2_current_samples),
+                'terminalEstimateRequired': TERMINAL_ESTIMATE_MIN_SAMPLES,
                 'historyStartTime': self.history_start_time,
                 'history': list(self.history),
                 'log': list(self.logs),
