@@ -18,7 +18,7 @@
         .panel { background: rgba(31, 41, 55, .94); border: 1px solid var(--line); padding: 15px; border-radius: 8px; }
         .fields { display: grid; grid-template-columns: 1fr 110px; gap: 8px 10px; align-items: center; } label { color: var(--muted); } input, select { width: 100%; background: #111827; color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 7px 8px; }
         .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; } button { border: 0; border-radius: 4px; padding: 9px 10px; color: #07111e; background: #cbd5e1; cursor: pointer; font-weight: 600; } button:hover { filter: brightness(1.12); } button:disabled { opacity: .45; cursor: default; } .green { background: var(--green); } .amber { background: var(--amber); } .red { background: var(--red); } .blue { background: var(--blue); }
-        .status { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; } .metric { background: var(--panel2); border-left: 3px solid var(--blue); padding: 11px; min-width: 0; } .metric:nth-child(2) { border-color: var(--green); } .metric:nth-child(3) { border-color: var(--amber); } .metric:nth-child(4) { border-color: var(--red); } .metric strong { display: block; font-size: 22px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .status { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; } .metric { background: var(--panel2); border-left: 3px solid var(--blue); padding: 11px; min-width: 0; } .metric:nth-child(2) { border-color: var(--green); } .metric:nth-child(3) { border-color: var(--amber); } .metric:nth-child(4) { border-color: var(--red); } .metric:nth-child(5) { border-color: var(--blue); } .metric strong { display: block; font-size: 22px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         canvas { width: 100%; height: 420px; display: block; background: #111827; border: 1px solid var(--line); border-radius: 5px; } .legend { color: var(--muted); font-size: 12px; margin-top: 8px; } .legend span { margin-right: 16px; } .swatch { display: inline-block; width: 9px; height: 9px; margin-right: 4px; }
         .log { min-height: 140px; max-height: 240px; overflow: auto; background: #111827; color: #cbd5e1; padding: 9px; white-space: pre-wrap; font-family: Consolas, monospace; font-size: 12px; }
         #message { min-height: 21px; color: var(--amber); margin-top: 10px; } .phase { color: var(--green); } .wide { grid-column: 1 / -1; }
@@ -60,7 +60,7 @@
         </aside>
         <section class="stack">
             <!-- 現在値のサマリー -->
-            <section class="status"><div class="metric"><span>Elapsed Time (s)</span><strong id="elapsed">0.0</strong></div><div class="metric"><span>Voltage (V)</span><strong id="voltage">0.000</strong></div><div class="metric"><span>Current (A)</span><strong id="current">0.000</strong></div><div class="metric"><span>Phase</span><strong id="phase" class="phase">0</strong></div></section>
+            <section class="status"><div class="metric"><span>Elapsed Time (s)</span><strong id="elapsed">0.0</strong></div><div class="metric"><span>Voltage (V)</span><strong id="voltage">0.000</strong></div><div class="metric"><span>Current (A)</span><strong id="current">0.000</strong></div><div class="metric"><span>Phase</span><strong id="phase" class="phase">0</strong></div><div class="metric"><span>Terminal Time to go (min)</span><strong id="terminalTimeToGo">--</strong></div></section>
             <!-- WebSocketで受信した履歴をCanvasへ描画 -->
             <section class="panel"><h2>Charge Profile</h2><canvas id="chart" width="1100" height="420"></canvas><div class="legend"><span><i class="swatch" style="background:#60a5fa"></i>Voltage</span><span><i class="swatch" style="background:#34d399"></i>Current</span><span><i class="swatch" style="background:#fbbf24"></i>Current Command</span></div></section>
             <!-- サーバーから受信した操作ログ -->
@@ -148,6 +148,10 @@ function apply(data) {
     $('dot').classList.toggle('on', Boolean(data.connected));
     $('operation').textContent = data.paused ? 'Paused' : data.running ? 'Charging' : data.outputReady ? 'Output Ready' : 'Standby';
     $('elapsed').textContent = number(data.elapsed, 1); $('voltage').textContent = number(data.voltage, 3); $('current').textContent = number(data.current, 3); $('phase').textContent = String(data.phase ?? 0);
+    const terminalTimeToGo = data.terminalTimeToGoMinutes;
+    $('terminalTimeToGo').textContent = terminalTimeToGo == null
+        ? (data.running && data.phase === 2 ? `Estimating (${data.terminalEstimateSamples || 0}/${data.terminalEstimateRequired || 20})` : '--')
+        : number(terminalTimeToGo, 1);
     const config = data.config || {}; fields.forEach(id => { if (document.activeElement !== $(id) && config[id] !== undefined) $(id).value = config[id]; });
     if (document.activeElement !== $('protectionVoltage') && config.voltageProtection !== undefined) $('protectionVoltage').value = config.voltageProtection;
     if (document.activeElement !== $('protectionCurrent') && config.currentProtection !== undefined) $('protectionCurrent').value = config.currentProtection;
