@@ -46,14 +46,14 @@
             <section class="panel"><h2>Device Connection</h2><select id="resource"></select><div class="buttons"><button data-action="connect" class="blue">Connect</button><button data-action="remote_on" class="green">Remote</button><button data-action="local">Local</button><button data-action="ready" class="green">Output ON</button><button data-action="disable" class="red">Output OFF</button></div></section>
             <!-- 充電制御のしきい値と制御周期 -->
             <section class="panel"><h2>Charge Settings</h2><div class="fields">
-                <label for="intervalSeconds">Control Interval (s)</label><input id="intervalSeconds" type="number" min="0.1" step="0.1" value="1">
-                <label for="plotIntervalSeconds">Plot / CSV Interval (s)</label><input id="plotIntervalSeconds" type="number" min="0.1" step="0.1" value="10">
-                <label for="phase1Voltage">Phase 1 Voltage (V)</label><input id="phase1Voltage" type="number" step="0.01" value="2.8">
-                <label for="phase2Voltage">Phase 2 Voltage (V)</label><input id="phase2Voltage" type="number" step="0.01" value="4.0">
-                <label for="trickleCurrent">Phase 0 Trickle Current (A)</label><input id="trickleCurrent" type="number" step="0.001" value="0.01">
-                <label for="ccCurrent">Phase 1/2 Charge Current (A)</label><input id="ccCurrent" type="number" step="0.001" value="0.5">
-                <label for="phase2MaxMinutes">Phase 2 Time Limit (min)</label><input id="phase2MaxMinutes" type="number" min="0" step="1" value="60">
-                <label for="phase2CutoffCurrent">Cutoff Current (A)</label><input id="phase2CutoffCurrent" type="number" min="0" step="0.001" value="0.05">
+                <label for="intervalSeconds">Control Interval (s)</label><input id="intervalSeconds" type="number" min="0.5" step="0.1" value="1">
+                <label for="plotIntervalSeconds">Plot / CSV Interval (s)</label><input id="plotIntervalSeconds" type="number" min="0.5" step="0.1" value="1">
+                <label for="phase1Voltage">Phase 1 Voltage (V)</label><input id="phase1Voltage" type="number" step="0.1" value="2.8">
+                <label for="phase2Voltage">Phase 2 Voltage (V)</label><input id="phase2Voltage" type="number" step="0.1" value="4.2">
+                <label for="trickleCurrent">Phase 0 Trickle Current (A)</label><input id="trickleCurrent" type="number" step="0.01" value="0.01">
+                <label for="ccCurrent">Phase 1 Charge Current (A)</label><input id="ccCurrent" type="number" step="0.01" value="1.0">
+                <label for="phase2MaxMinutes">Phase 2 Time Limit (min)</label><input id="phase2MaxMinutes" type="number" min="0" step="1" value="180">
+                <label for="phase2CutoffCurrent">Cutoff Current (A)</label><input id="phase2CutoffCurrent" type="number" min="0" step="0.01" value="0.1">
             </div><div class="buttons"><button data-action="set_config" class="blue wide">Apply Settings</button></div></section>
             <!-- Start/Stop、Pause/Resume、履歴リセット、CSV出力 -->
             <section class="panel"><h2>Charge Control</h2><div class="buttons"><button data-action="start" class="green">Start</button><button data-action="pause_resume" class="amber">Pause / Resume</button><button data-action="stop" class="red">Stop</button><button data-action="reset" class="amber">Reset</button><button data-action="measure">Measure Now</button><button data-action="download_csv" class="blue wide">Download CSV</button></div><div id="message"></div></section>
@@ -74,9 +74,9 @@
             <p style="color:var(--muted)">Set the voltage and current protection limits on the KIKUSUI power supply.</p>
             <div class="fields">
                 <label for="protectionVoltage">Voltage Protection Limit (V)</label>
-                <input id="protectionVoltage" type="number" min="0.001" step="0.1" value="18.0">
+                <input id="protectionVoltage" type="number" min="0.01" step="0.1" value="18.0">
                 <label for="protectionCurrent">Current Protection Limit (A)</label>
-                <input id="protectionCurrent" type="number" min="0.001" step="0.1" value="5.0">
+                <input id="protectionCurrent" type="number" min="0.01" step="0.1" value="5.0">
             </div>
             <div class="buttons">
                 <button data-action="set_voltage_protection" class="blue">Set Voltage Limit</button>
