@@ -150,7 +150,7 @@ function apply(data) {
     $('elapsed').textContent = number(data.elapsed, 1); $('voltage').textContent = number(data.voltage, 3); $('current').textContent = number(data.current, 3); $('phase').textContent = String(data.phase ?? 0);
     const terminalTimeToGo = data.terminalTimeToGoMinutes;
     $('terminalTimeToGo').textContent = terminalTimeToGo == null
-        ? (data.running && data.phase === 2 ? `Estimating (${data.terminalEstimateSamples || 0}/${data.terminalEstimateRequired || 20})` : '--')
+        ? (data.running && data.phase === 2 ? 'Estimating' : '--')
         : number(terminalTimeToGo, 1);
     const config = data.config || {}; fields.forEach(id => { if (document.activeElement !== $(id) && config[id] !== undefined) $(id).value = config[id]; });
     if (document.activeElement !== $('protectionVoltage') && config.voltageProtection !== undefined) $('protectionVoltage').value = config.voltageProtection;
